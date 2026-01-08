@@ -1,6 +1,7 @@
 #include"Vector.h"
 const char* Error[7] ={"","SUCCEED","VEC_NULL","VEC_EMPTY","VEC_FULL","ARG_ERROR","MEM_GET_FAL"};
-Vector* Creat(size_t size){//传入创建大小
+Vector* Creat(size_t size,size_t elem_size){//传入创建大小
+
      if(size==0){
         Pri_Error(VEC_ERROR_ARG);
         return NULL;
@@ -10,7 +11,8 @@ Vector* Creat(size_t size){//传入创建大小
         Pri_Error(VEC_ERROR_MEM);
         return NULL;
      }
-     int *p=(int*)calloc(size,sizeof(int));
+     v->elem_size=elem_size;
+     void *p=calloc(size,sizeof(v->elem_size));
      if(!p){
         Pri_Error(VEC_ERROR_MEM);
         free(v);
@@ -22,7 +24,7 @@ Vector* Creat(size_t size){//传入创建大小
      v->capacity=size;
      return v;
 }
-int Resize(Vector* v,int new_capacity){
+int Resize(Vector* v,size_t new_capacity){
    if(!new_capacity){
       free(v->data);
       v->data=NULL;
@@ -33,9 +35,9 @@ int Resize(Vector* v,int new_capacity){
     if(!v){
         return VEC_ERROR_NULL;
     }
-    int *new_data=NULL;
+    void *new_data=NULL;
        if(new_capacity<v->size){//新空间比原来的小用户是想缩短内存不能忽视
-           new_data=(int*)realloc(v->data,sizeof(int)*new_capacity);
+           new_data=(void*)realloc(v->data,sizeof(v->elem_size)*new_capacity);
            if(!new_data){
             return VEC_ERROR_MEM;
            }
@@ -51,7 +53,7 @@ int Resize(Vector* v,int new_capacity){
        if(new_capacity>v->capacity){
          size_t real_size=new_capacity;
          new_capacity=new_capacity>v->capacity*2?new_capacity:v->capacity*2;
-          new_data=(int*)realloc(v->data,sizeof(int)*new_capacity);
+          new_data=realloc(v->data,sizeof(v->elem_size)*new_capacity);
           if(!new_data){
             return VEC_ERROR_MEM;
           }
@@ -71,7 +73,7 @@ int Clear(Vector*v){
       v->data=NULL;
       return VEC_OK;
 }
-int Push_back(Vector *v,int  x){
+int Push_back(Vector *v,const void *x){
      if(!v){
       return VEC_ERROR_NULL;
      }
@@ -81,7 +83,7 @@ int Push_back(Vector *v,int  x){
          return VEC_ERROR_MEM;
       }
      }
-     v->data[new_capacity-1]=x;
+     memcpy(v->data+new_capacity-1,x,sizeof(v->elem_size));
      v->size=new_capacity;
      return VEC_OK;
 
@@ -97,13 +99,13 @@ int Pop_back(Vector*v){
      v->size=v->size-1;
      return VEC_OK;
 }
-int* Back(const Vector *v){
+void* Back(const Vector *v){
       if(!v||!v->size){
          return NULL;
       }
       return v->data+v->size-1;
 }
-int* at(const Vector *v,size_t i){
+void* at(const Vector *v,size_t i){
      if(!v||!v->size){
       return NULL;
      }
@@ -121,12 +123,12 @@ Vector* copy(const Vector*v){
       
       cp_v->capacity=v->capacity;
       cp_v->size=v->size;
-      cp_v->data=(int*)malloc(sizeof(int)*cp_v->capacity);
+      cp_v->data=malloc(sizeof(v->elem_size)*cp_v->capacity);
       if(!cp_v->data){
          Pri_Error(VEC_ERROR_MEM);
          return NULL;
       }
-      memcpy(cp_v->data,v->data,v->capacity*sizeof(int));
+      memcpy(cp_v->data,v->data,v->capacity*sizeof(v->elem_size));
       return cp_v;
 
 }
